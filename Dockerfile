@@ -1,18 +1,29 @@
-FROM ubuntu:16.04
+FROM ubuntu
 
-#RUN add-apt-repository --remove 'http://us-central1.gce.archive.ubuntu.com/ubuntu/ main restricted' && \
-#    add-apt-repository --remove 'http://us-central1.gce.archive.ubuntu.com/ubuntu/ universe' && \
-#    add-apt-repository --remove 'http://us-central1.gce.archive.ubuntu.com/ubuntu/ multiverse' && \
-#    add-apt-repository http://archive.ubuntu.com/ubuntu/ && \
-#    add-apt-repository 'http://archive.ubuntu.com/ubuntu/ universe' && \
-#    add-apt-repository 'http://archive.ubuntu.com/ubuntu/ multiverse' && \
+## VARIABLES
+ENV MAX_PLAYERS=22
+ENV MAIN_SHARED=
+ENV FS_GAME=
+ENV CONFIG=
+ENV ARGS=
+
+ENV DEBIAN_FRONTEND noninteractive
+
 RUN dpkg --add-architecture i386 && \
-    apt-get -qq update && apt-get install -y make nasm:i386 gcc-multilib g++-multilib paxctl:i386
+    apt-get update && \
+    apt-get install -y lib32stdc++6
 
-COPY . /cod4x
+COPY bin/ cod4x-server
+RUN chmod +x cod4x-server/cod4x18_dedrun
+RUN groupadd -r cod && useradd --no-log-init -r -g cod cod
 
-RUN cd /cod4x/src/tomcrypt && ./compile_linux.sh 
-RUN cd /cod4x/src/mbedtls && make 
-RUN cd /cod4x && make linux32
+RUN chown -R cod:cod cod4x-server
 
-ENTRYPOINT ["/cod4x/bin/cod4x18_dedrun"]
+RUN mkdir cod4x-server/main
+RUN chown -R cod:cod cod4x-server/main
+
+EXPOSE 28960
+USER cod
+
+ENTRYPOINT cd cod4x-server && ./cod4x18_dedrun +set net_port 28960 +map mp_killhouse +set sv_maxclients $MAX_PLAYERS +set fs_homepath . +set fs_basepath ../cod4x-server-base +set fs_game "$FS_GAME" +exec "$CONFIG" $ARGS
+#ENTRYPOINT /bin/bash
