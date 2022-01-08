@@ -15,7 +15,5 @@ do
     FULL_CFG="${FULL_CFG} ${CFG_ITEM}"
 done
 
-echo "/server/cod4x18_dedrun $FULL_CFG"
-sleep 3
+echo "Executing: /server/cod4x18_dedrun $FULL_CFG"
 ./cod4x18_dedrun $FULL_CFG
-sleep 3
