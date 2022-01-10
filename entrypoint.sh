@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 
-# Give parameters in server.cfg directly to the client
+# Give parameters in whatever .cfg files there are,  directly to the server
 
 # Remove Lines starting with "//"
 # Remove trailing comments on lines (content //comment)
@@ -9,7 +9,7 @@
 # set -> +set
 # map -> +map
 
-CFG_LINES=$(sed '/^\/\//d ; s/\/\/.*$//; /^\s*$/d; s/\n//g; s/^set/+set/g; s/^map/+map/g' ./server.cfg)
+CFG_LINES=$(sed '/^\/\//d ; s/\/\/.*$//; /^\s*$/d; s/\n//g; s/^set/+set/g; s/^map/+map/g' ./*.cfg)
 for CFG_ITEM in $CFG_LINES
 do
     FULL_CFG="${FULL_CFG} ${CFG_ITEM}"
