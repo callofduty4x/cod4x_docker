@@ -3,7 +3,9 @@
 In order to build the image:
 
 ` docker build -t cod4x /path/to/repo/Docker`
+
 ` docker build -t cod4x .` (From this location)
+
 ` docker build -t cod4x Docker` (From the repo's root directory)
 
 ## Running:
