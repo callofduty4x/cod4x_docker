@@ -1,29 +1,26 @@
+# Compile source code
 FROM ubuntu
-
-## VARIABLES
-ENV MAX_PLAYERS=22
-ENV MAIN_SHARED=
-ENV FS_GAME=
-ENV CONFIG=
-ENV ARGS=
-
-ENV DEBIAN_FRONTEND noninteractive
-
+WORKDIR /build_src
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
-    apt-get install -y lib32stdc++6
+    apt-get install -y lib32stdc++6 gcc make nasm:i386 build-essential gcc-multilib g++-multilib git
+# Compile server with latest git master version
+RUN git clone https://github.com/callofduty4x/CoD4x_Server.git .
+RUN make -j
 
-COPY bin/ cod4x-server
-RUN chmod +x cod4x-server/cod4x18_dedrun
-RUN groupadd -r cod && useradd --no-log-init -r -g cod cod
+# Build Docker image with a smaller OS image
+FROM debian:stable-slim
+RUN mkdir -p /server/zone
+COPY --from=0 /build_src/bin/cod4x18_dedrun /server
+COPY --from=0 /build_src/globalconfig.cfg /server
+RUN chmod +x /server/cod4x18_dedrun
+RUN dpkg --add-architecture i386; \
+    apt update; apt install -y lib32stdc++6
+EXPOSE 28960/tcp
+EXPOSE 28960/udp
 
-RUN chown -R cod:cod cod4x-server
-
-RUN mkdir cod4x-server/main
-RUN chown -R cod:cod cod4x-server/main
-
-EXPOSE 28960
-USER cod
-
-ENTRYPOINT cd cod4x-server && ./cod4x18_dedrun +set net_port 28960 +map mp_killhouse +set sv_maxclients $MAX_PLAYERS +set fs_homepath . +set fs_basepath ../cod4x-server-base +set fs_game "$FS_GAME" +exec "$CONFIG" $ARGS
-#ENTRYPOINT /bin/bash
+WORKDIR /server
+COPY entrypoint.sh entrypoint.sh
+COPY server.cfg server.cfg
+RUN chmod +x entrypoint.sh
+CMD ["./entrypoint.sh"]
